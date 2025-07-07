@@ -1,14 +1,15 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Image, Animated } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Image, Animated, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
-import SignUp from './SignUp';  
-
+import { loginWithUsernameAndPassword } from '../services/auth';
 
 export default function LoginScreen({ onLogin }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(100)).current; // Start 100px below
   const [rememberMe, setRememberMe] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const navigation = useNavigation();
 
 
@@ -26,6 +27,24 @@ export default function LoginScreen({ onLogin }) {
       }),
     ]).start();
   }, [fadeAnim, slideAnim]);
+
+  const handleLogin = async () => {
+    if (!username || !password) {
+      Alert.alert('Error', 'Please enter both username and password');
+      return;
+    }
+    try {
+      const success = await loginWithUsernameAndPassword(username, password);
+      if (success) {
+        Alert.alert('Success', 'Logged in!');
+        navigation.replace('HomeScreen', { username }); // Navigate to HomeScreen and pass username
+      } else {
+        Alert.alert('Error', 'Invalid username or password');
+      }
+    } catch (error) {
+      Alert.alert('Error', error.message);
+    }
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#225B64' }}>
@@ -54,6 +73,8 @@ export default function LoginScreen({ onLogin }) {
             placeholder="Enter Username"
             style={styles.input}
             placeholderTextColor="#888"        
+            value={username}
+            onChangeText={setUsername}
           />
         </View>
 
@@ -64,6 +85,8 @@ export default function LoginScreen({ onLogin }) {
             secureTextEntry
             style={styles.input}
             placeholderTextColor="#888"
+            value={password}
+            onChangeText={setPassword}
           />
         </View>
 
@@ -84,7 +107,7 @@ export default function LoginScreen({ onLogin }) {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.loginButton} onPress={onLogin}>
+        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
           <Text style={styles.loginButtonText}>Login</Text>
         </TouchableOpacity>
 

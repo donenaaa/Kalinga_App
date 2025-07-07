@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -12,8 +12,30 @@ import {
   Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { getUserInfo } from '../services/getinfo';
 
-export default function HomeScreen() {
+export default function HomeScreen({ route }) {
+  const [userInfo, setUserInfo] = useState(null);
+
+  // Assume username is passed via navigation params after login
+  const username = route?.params?.username;
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (username) {
+        const info = await getUserInfo(username);
+        setUserInfo(info);
+      }
+    };
+    fetchUser();
+  }, [username]);
+
+  // Fallbacks if userInfo is not loaded yet
+  const barangay = userInfo?.barangay || '';
+  const city = userInfo?.city || '';
+  const province = userInfo?.province || '';
+  const firstName = userInfo?.firstName || '';
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar
@@ -25,7 +47,11 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <View style={styles.locationRow}>
             <Icon name="location-outline" size={16} color="#fff" />
-            <Text style={styles.locationText}>Bogo City, Cebu</Text>
+            <Text style={styles.locationText}>
+              {barangay && city && province
+                ? `${barangay}, ${city}, ${province}`
+                : 'Loading...'}
+            </Text>
           </View>
           <TouchableOpacity>
             <Icon name="notifications-outline" size={24} color="#fff" />
@@ -38,7 +64,7 @@ export default function HomeScreen() {
             <View style={styles.profilePlaceholder} />
             <View>
               <Text style={styles.welcomeText}>Welcome back,</Text>
-              <Text style={styles.userName}>Dannah</Text>
+              <Text style={styles.userName}>{firstName || '...'}</Text>
             </View>
           </View>
 
