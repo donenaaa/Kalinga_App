@@ -8,17 +8,23 @@ import {
   Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // <-- Add this import
 
 export default function ProfileScreen({ navigation }) {
-  const handleLogout = () => {
+  const handleLogout = async () => {
     Alert.alert('Log Out', 'Are you sure you want to log out?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Log Out',
         style: 'destructive',
-        onPress: () => {
-          // TODO: Clear user session and navigate to login screen
-          navigation.replace('Login'); // assumes you have a 'Login' screen
+        onPress: async () => {
+          // Clear user session (example: remove 'user' key)
+          await AsyncStorage.removeItem('user');
+          // Optionally clear all AsyncStorage: await AsyncStorage.clear();
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'LoginScreen' }],
+          }); // assumes you have a 'Login' screen
         },
       },
     ]);

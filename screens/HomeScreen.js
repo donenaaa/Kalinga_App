@@ -12,29 +12,24 @@ import {
   Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { getUserInfo } from '../services/getinfo';
+import { db } from '../firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 export default function HomeScreen({ route }) {
+  const username = route?.params?.username;
   const [userInfo, setUserInfo] = useState(null);
 
-  // Assume username is passed via navigation params after login
-  const username = route?.params?.username;
-
   useEffect(() => {
-    const fetchUser = async () => {
-      if (username) {
-        const info = await getUserInfo(username);
-        setUserInfo(info);
+    const fetchUserInfo = async () => {
+      const q = query(collection(db, 'users'), where('username', '==', username));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        setUserInfo(querySnapshot.docs[0].data());
       }
     };
-    fetchUser();
-  }, [username]);
 
-  // Fallbacks if userInfo is not loaded yet
-  const barangay = userInfo?.barangay || '';
-  const city = userInfo?.city || '';
-  const province = userInfo?.province || '';
-  const firstName = userInfo?.firstName || '';
+    fetchUserInfo();
+  }, [username]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -48,8 +43,8 @@ export default function HomeScreen({ route }) {
           <View style={styles.locationRow}>
             <Icon name="location-outline" size={16} color="#fff" />
             <Text style={styles.locationText}>
-              {barangay && city && province
-                ? `${barangay}, ${city}, ${province}`
+              {userInfo
+                ? `${userInfo.barangay}, ${userInfo.city}, ${userInfo.province}`
                 : 'Loading...'}
             </Text>
           </View>
@@ -64,7 +59,7 @@ export default function HomeScreen({ route }) {
             <View style={styles.profilePlaceholder} />
             <View>
               <Text style={styles.welcomeText}>Welcome back,</Text>
-              <Text style={styles.userName}>{firstName || '...'}</Text>
+              <Text style={styles.userName}>{userInfo ? userInfo.firstName : ''}</Text>
             </View>
           </View>
 

@@ -37,7 +37,7 @@ export default function LoginScreen({ onLogin }) {
       const success = await loginWithUsernameAndPassword(username, password);
       if (success) {
         Alert.alert('Success', 'Logged in!');
-        navigation.replace('HomeScreen', { username }); // Navigate to HomeScreen and pass username
+        navigation.replace('MainTabs', { username }); // Navigate to HomeScreen and pass username
       } else {
         Alert.alert('Error', 'Invalid username or password');
       }
