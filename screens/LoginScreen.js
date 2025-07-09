@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Imag
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { loginWithUsernameAndPassword } from '../services/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen({ onLogin }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -36,6 +37,7 @@ export default function LoginScreen({ onLogin }) {
     try {
       const success = await loginWithUsernameAndPassword(username, password);
       if (success) {
+        await AsyncStorage.setItem('user', username.trim());
         Alert.alert('Success', 'Logged in!');
         navigation.replace('MainTabs', { username }); // Navigate to HomeScreen and pass username
       } else {

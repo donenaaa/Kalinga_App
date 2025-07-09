@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,11 +6,30 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // <-- Add this import
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getUserInfo } from '../services/getinfo';
 
 export default function ProfileScreen({ navigation }) {
+  const [userInfo, setUserInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchProfile() {
+      const username = await AsyncStorage.getItem('user');
+      console.log('Username from AsyncStorage:', username); // Debug
+      if (username) {
+        const info = await getUserInfo(username);
+        console.log('Fetched user info:', info); // Debug
+        setUserInfo(info);
+      }
+      setLoading(false);
+    }
+    fetchProfile();
+  }, []);
+
   const handleLogout = async () => {
     Alert.alert('Log Out', 'Are you sure you want to log out?', [
       { text: 'Cancel', style: 'cancel' },
@@ -18,28 +37,40 @@ export default function ProfileScreen({ navigation }) {
         text: 'Log Out',
         style: 'destructive',
         onPress: async () => {
-          // Clear user session (example: remove 'user' key)
           await AsyncStorage.removeItem('user');
-          // Optionally clear all AsyncStorage: await AsyncStorage.clear();
           navigation.reset({
             index: 0,
             routes: [{ name: 'LoginScreen' }],
-          }); // assumes you have a 'Login' screen
+          });
         },
       },
     ]);
   };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#e75e33" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       {/* Profile Picture */}
       <View style={styles.profileSection}>
         <Image
-          source={require('../assets/Kalinga_logo.png')} // Replace with your asset
+          source={require('../assets/Kalinga_logo.png')}
           style={styles.avatar}
         />
-        <Text style={styles.name}>Dannah</Text>
-        <Text style={styles.email}>dannah@email.com</Text>
+        <Text style={styles.name}>
+          {userInfo
+            ? `${userInfo.firstName?.trim() || 'No Name'}`
+            : 'No Name'}
+        </Text>
+        <Text style={styles.email}>
+          {userInfo?.email || 'No Email'}
+        </Text>
       </View>
 
       {/* Settings Options */}

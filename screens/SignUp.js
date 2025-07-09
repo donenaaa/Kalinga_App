@@ -41,6 +41,7 @@ export default function SignUp({ navigation }) {
         city,
         barangay,
         password, // In production, never store plain passwords!
+        is_verified: 0, // <-- Add this line for verification status
       });
       Alert.alert('Success', 'Account created!');
       navigation.replace('LoginScreen'); // Navigate to LoginScreen
