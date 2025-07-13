@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -10,10 +10,10 @@ import {
   SafeAreaView,
   StatusBar,
   Platform,
-} from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
-import { db } from '../firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+} from "react-native";
+import Icon from "react-native-vector-icons/Ionicons";
+import { db } from "../firebase";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 export default function HomeScreen({ route }) {
   const username = route?.params?.username;
@@ -21,7 +21,10 @@ export default function HomeScreen({ route }) {
 
   useEffect(() => {
     const fetchUserInfo = async () => {
-      const q = query(collection(db, 'users'), where('username', '==', username));
+      const q = query(
+        collection(db, "users"),
+        where("username", "==", username)
+      );
       const querySnapshot = await getDocs(q);
       if (!querySnapshot.empty) {
         setUserInfo(querySnapshot.docs[0].data());
@@ -45,7 +48,7 @@ export default function HomeScreen({ route }) {
             <Text style={styles.locationText}>
               {userInfo
                 ? `${userInfo.barangay}, ${userInfo.city}, ${userInfo.province}`
-                : 'Loading...'}
+                : "Loading..."}
             </Text>
           </View>
           <TouchableOpacity>
@@ -59,7 +62,9 @@ export default function HomeScreen({ route }) {
             <View style={styles.profilePlaceholder} />
             <View>
               <Text style={styles.welcomeText}>Welcome back,</Text>
-              <Text style={styles.userName}>{userInfo ? userInfo.firstName : ''}</Text>
+              <Text style={styles.userName}>
+                {userInfo ? userInfo.firstName : ""}
+              </Text>
             </View>
           </View>
 
@@ -79,11 +84,17 @@ export default function HomeScreen({ route }) {
           <Text style={styles.sectionTitle}>Services</Text>
           <View style={styles.cardRow}>
             <View style={styles.card}>
-              <Image source={require('../assets/Kalinga_logo.png')} style={styles.cardImage} />
+              <Image
+                source={require("../assets/Kalinga_logo.png")}
+                style={styles.cardImage}
+              />
               <Text style={styles.cardText}>Food Distribution Schedules</Text>
             </View>
             <View style={styles.card}>
-              <Image source={require('../assets/Kalinga_logo.png')} style={styles.cardImage} />
+              <Image
+                source={require("../assets/Kalinga_logo.png")}
+                style={styles.cardImage}
+              />
               <Text style={styles.cardText}>Medical Support Location</Text>
             </View>
             <View style={styles.card}>
@@ -104,49 +115,54 @@ export default function HomeScreen({ route }) {
   );
 }
 
-
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   header: {
-    backgroundColor: '#e75e33',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    backgroundColor: "#e75e33",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 16,
   },
-  locationRow: { flexDirection: 'row', alignItems: 'center' },
-  locationText: { color: '#fff', marginLeft: 4, fontWeight: 'bold' },
+  locationRow: { flexDirection: "row", alignItems: "center" },
+  locationText: { color: "#fff", marginLeft: 4, fontWeight: "bold" },
 
-  scrollContainer: 
-  { padding: 16, 
-    paddingBottom: 30 
+  scrollContainer: {
+    flexGrow: 1,
+    padding: 12,
+    paddingBottom: 30,
   },
 
-  welcomeContainer: 
-  { flexDirection: 'row', 
-    alignItems: 'center', 
+  welcomeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: 10,
-    marginBottom: 25, 
+    marginBottom: 25,
   },
 
   profilePlaceholder: {
     width: 50,
     height: 50,
-    backgroundColor: '#ccc',
+    backgroundColor: "#ccc",
     borderRadius: 10,
     marginRight: 12,
   },
 
-  welcomeText: { fontSize: 16, color: '#333' },
-  userName: { fontSize: 18, fontWeight: 'bold', color: '#000' },
+  welcomeText: { fontSize: 16, color: "#333" },
+  userName: { fontSize: 18, fontWeight: "bold", color: "#000" },
 
   searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f1f1f1',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f1f1f1",
     borderRadius: 8,
     paddingHorizontal: 8,
   },
@@ -157,46 +173,51 @@ const styles = StyleSheet.create({
   },
   searchIcon: {
     padding: 6,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 8,
     marginLeft: 4,
   },
 
-  sectionTitle: { 
-    fontSize: 18, 
-    fontWeight: 'bold', 
-    marginBottom: 16, 
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 16,
     paddingTop: 20,
   },
 
-  cardRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  cardRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    gap: 5, // optional: to avoid crowding between cards
+  },
   card: {
     width: 115,
     height: 150,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 8,
-    alignItems: 'center',
+    alignItems: "center",
     elevation: 3,
   },
-  cardImage: { 
-    width: 60, 
-    height: 60, 
+  cardImage: {
+    width: 60,
+    height: 60,
     borderRadius: 30,
     marginTop: 12,
-    marginBottom: 7
+    marginBottom: 7,
   },
-  cardText: { 
-    fontSize: 13, 
-    textAlign: 'center', 
-   },
-   
-  placeholder: { backgroundColor: '#e1e1e1' },
+  cardText: {
+    fontSize: 13,
+    textAlign: "center",
+  },
+
+  placeholder: { backgroundColor: "#e1e1e1" },
 
   blankCard: {
-    width: 170,
+    width: 177,
     height: 190,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     elevation: 4,
   },

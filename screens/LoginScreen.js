@@ -1,18 +1,26 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Image, Animated, Alert } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
-import { useNavigation } from '@react-navigation/native';
-import { loginWithUsernameAndPassword } from '../services/auth';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useRef, useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  SafeAreaView,
+  Image,
+  Animated,
+  Alert,
+} from "react-native";
+import Icon from "react-native-vector-icons/Ionicons";
+import { useNavigation } from "@react-navigation/native";
+import { loginWithUsernameAndPassword } from "../services/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function LoginScreen({ onLogin }) {
+export default function LoginScreen({ navigation, onLogin }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(100)).current; // Start 100px below
+  const slideAnim = useRef(new Animated.Value(100)).current;
   const [rememberMe, setRememberMe] = useState(false);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const navigation = useNavigation();
-
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
 
   useEffect(() => {
     Animated.parallel([
@@ -27,39 +35,41 @@ export default function LoginScreen({ onLogin }) {
         useNativeDriver: true,
       }),
     ]).start();
-  }, [fadeAnim, slideAnim]);
+  }, []);
 
   const handleLogin = async () => {
     if (!username || !password) {
-      Alert.alert('Error', 'Please enter both username and password');
+      Alert.alert("Error", "Please enter both username and password");
       return;
     }
+
     try {
       const success = await loginWithUsernameAndPassword(username, password);
       if (success) {
-        await AsyncStorage.setItem('user', username.trim());
-        Alert.alert('Success', 'Logged in!');
-        navigation.replace('MainTabs', { username }); // Navigate to HomeScreen and pass username
+        await AsyncStorage.setItem("user", username.trim());
+        if (onLogin) onLogin(); // Properly call the function if passed
+        Alert.alert("Success", "Logged in!");
+        navigation.replace("MainTabs", { username });
       } else {
-        Alert.alert('Error', 'Invalid username or password');
+        Alert.alert("Error", "Invalid username or password");
       }
     } catch (error) {
-      Alert.alert('Error', error.message);
+      Alert.alert("Error", error.message);
     }
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#225B64' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#225B64" }}>
       <Text style={styles.title}>SIGN IN</Text>
 
       <Image
-        source={require('../assets/Kalinga_logo.png')} // Update the path as needed
+        source={require("../assets/Kalinga_logo.png")} // Update the path as needed
         style={styles.loginImage}
         resizeMode="contain"
       />
 
       <Animated.Text style={[styles.welcomeText, { opacity: fadeAnim }]}>
-        Welcome to {'\n'}
+        Welcome to {"\n"}
         <Text style={styles.kalingaText}>KALINGA!</Text>
       </Animated.Text>
 
@@ -70,18 +80,28 @@ export default function LoginScreen({ onLogin }) {
         ]}
       >
         <View style={styles.inputWrapper}>
-          <Icon name="person-outline" size={25} color="#225B64" style={styles.inputIcon} />
+          <Icon
+            name="person-outline"
+            size={25}
+            color="#225B64"
+            style={styles.inputIcon}
+          />
           <TextInput
             placeholder="Enter Username"
             style={styles.input}
-            placeholderTextColor="#888"        
+            placeholderTextColor="#888"
             value={username}
             onChangeText={setUsername}
           />
         </View>
 
         <View style={styles.inputWrapper}>
-          <Icon name="lock-closed-outline" size={25} color="#225B64" style={styles.inputIcon} />
+          <Icon
+            name="lock-closed-outline"
+            size={25}
+            color="#225B64"
+            style={styles.inputIcon}
+          />
           <TextInput
             placeholder="Enter Password"
             secureTextEntry
@@ -98,7 +118,9 @@ export default function LoginScreen({ onLogin }) {
             onPress={() => setRememberMe(!rememberMe)}
             activeOpacity={0.7}
           >
-            <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
+            <View
+              style={[styles.checkbox, rememberMe && styles.checkboxChecked]}
+            >
               {rememberMe && <Icon name="checkmark" size={16} color="#fff" />}
             </View>
             <Text style={styles.rememberMeText}>Remember me</Text>
@@ -121,16 +143,17 @@ export default function LoginScreen({ onLogin }) {
         </View>
 
         <TouchableOpacity style={styles.continueButton}>
-          <Text style={styles.continueButtonText}>Continue without logging in</Text>
+          <Text style={styles.continueButtonText}>
+            Continue without logging in
+          </Text>
         </TouchableOpacity>
 
         <View style={styles.signupContainer}>
           <Text style={styles.signupText}>Not yet a member?</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
-              <Text style={styles.signupLink}> SIGN UP</Text>
-            </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
+            <Text style={styles.signupLink}> SIGN UP</Text>
+          </TouchableOpacity>
         </View>
-
       </Animated.View>
     </SafeAreaView>
   );
@@ -138,63 +161,63 @@ export default function LoginScreen({ onLogin }) {
 
 const styles = StyleSheet.create({
   title: {
-    height: '100%',
+    height: "100%",
     fontSize: 30,
     marginBottom: 10,
-    textAlign: 'center',
-    color: '#EC6135',
-    backgroundColor: '#fff',
+    textAlign: "center",
+    color: "#EC6135",
+    backgroundColor: "#fff",
     padding: 40,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   loginImage: {
-    position: 'absolute',
+    position: "absolute",
     top: 95,
     width: 130,
     height: 130,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   welcomeText: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     right: 0,
     top: 240,
     marginBottom: 20,
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 25,
-    color: 'black',
+    color: "black",
     fontWeight: 400,
     opacity: 0.8,
   },
   kalingaText: {
-    color: '#FCBE38',
+    color: "#FCBE38",
     fontSize: 32,
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: 4,
   },
   formContainer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    top: '40%',
+    top: "40%",
     flex: 0.5,
-    backgroundColor: '#49A5A2',
+    backgroundColor: "#49A5A2",
     borderTopLeftRadius: 50,
     padding: 20,
-    paddingTop: 40,    
+    paddingTop: 40,
   },
   inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
     borderRadius: 30,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     marginBottom: 15,
     paddingHorizontal: 10,
     height: 45,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -209,104 +232,103 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     paddingVertical: 10,
-    color: '#333',
+    color: "#333",
     fontSize: 15,
   },
   rememberForgotRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 10,
     marginHorizontal: 5,
   },
   rememberMeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   checkbox: {
     width: 20,
     height: 20,
     borderRadius: 5,
     borderWidth: 2,
-    borderColor: '#225B64',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderColor: "#225B64",
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 8,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   checkboxChecked: {
-    backgroundColor: '#225B64',
-    borderColor: '#225B64',
+    backgroundColor: "#225B64",
+    borderColor: "#225B64",
   },
   rememberMeText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
     fontSize: 14,
   },
   forgotPasswordText: {
-    color: '#fff',
-    textAlign: 'right',
-    fontWeight: '600',
+    color: "#fff",
+    textAlign: "right",
+    fontWeight: "600",
     fontSize: 14,
   },
   loginButton: {
-    backgroundColor: '#225B64',
+    backgroundColor: "#225B64",
     paddingVertical: 12,
     borderRadius: 30,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 10,
   },
   loginButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
-   dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  dividerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
     marginVertical: 20,
     marginHorizontal: 5,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   dividerText: {
     marginHorizontal: 10,
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
     fontSize: 14,
   },
-   continueButton: {
-    backgroundColor: 'transparent',
+  continueButton: {
+    backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: '#fff',
+    borderColor: "#fff",
     borderRadius: 30,
     paddingVertical: 12,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 10,
   },
   continueButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   signupContainer: {
-  flexDirection: 'row',
-  justifyContent: 'center',
-  alignItems: 'center',
-  marginTop: 20,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 20,
   },
   signupText: {
     fontSize: 15,
-    color: '#fff',
+    color: "#fff",
   },
   signupLink: {
     fontSize: 15,
-    color: '#FCBE38',
-    fontWeight: 'bold',
-    textDecorationLine: 'underline',
+    color: "#FCBE38",
+    fontWeight: "bold",
+    textDecorationLine: "underline",
   },
-
 });
