@@ -136,17 +136,17 @@ export default function LoginScreen({ navigation, onLogin }) {
         </TouchableOpacity>
 
         {/* Divider with "or" */}
-        <View style={styles.dividerContainer}>
+        {/* <View style={styles.dividerContainer}>
           <View style={styles.dividerLine} />
           <Text style={styles.dividerText}>OR</Text>
           <View style={styles.dividerLine} />
-        </View>
+        </View> */}
 
-        <TouchableOpacity style={styles.continueButton}>
+        {/* <TouchableOpacity style={styles.continueButton}>
           <Text style={styles.continueButtonText}>
             Continue without logging in
           </Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         <View style={styles.signupContainer}>
           <Text style={styles.signupText}>Not yet a member?</Text>

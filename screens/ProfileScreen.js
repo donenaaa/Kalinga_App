@@ -14,8 +14,10 @@ import {
 import Icon from "react-native-vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getUserInfo } from "../services/getinfo";
+import { useNavigation } from "@react-navigation/native";
 
-export default function ProfileScreen({ navigation }) {
+export default function ProfileScreen() {
+  const navigation = useNavigation();
   const [userInfo, setUserInfo] = useState(null);
 
   useEffect(() => {
@@ -59,14 +61,20 @@ export default function ProfileScreen({ navigation }) {
             />
             <Text style={styles.name}>
               {userInfo
-                ? `${userInfo.firstName?.trim() || "No Name"}`
-                : "No Name"}
+                ? `${userInfo.firstName?.trim() || "Citizen"} ${userInfo.lastName?.trim() || ""}`
+                : "Citizen"}
             </Text>
             <Text style={styles.email}>{userInfo?.email || "No Email"}</Text>
-            <TouchableOpacity style={styles.signInButton}>
-              <Icon name="person-outline" size={18} color="#e75e33" />
-              <Text style={styles.signInText}>Sign in</Text>
-            </TouchableOpacity>
+            {!userInfo && (
+              <TouchableOpacity
+                style={styles.signInButton}
+                onPress={() => navigation.navigate("LoginScreen")}
+              >
+                <Icon name="person-outline" size={18} color="#e75e33" />
+                <Text style={styles.signInText}>Sign in</Text>
+              </TouchableOpacity>
+            )}
+
           </View>
 
           {/* Settings Options */}
@@ -102,10 +110,13 @@ export default function ProfileScreen({ navigation }) {
           </View>
 
           {/* Log Out */}
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <Icon name="log-out-outline" size={20} color="#e75e33" />
-            <Text style={styles.logoutText}>Log Out</Text>
-          </TouchableOpacity>
+          {userInfo && (
+  <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+    <Icon name="log-out-outline" size={20} color="#e75e33" />
+    <Text style={styles.logoutText}>Log Out</Text>
+  </TouchableOpacity>
+)}
+
         </View>
       </ScrollView>
     </SafeAreaView>

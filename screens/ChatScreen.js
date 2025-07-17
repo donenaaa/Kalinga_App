@@ -14,42 +14,91 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { getGeminiResponse } from '../services/geminiChatService';
 import { getUserInfo } from '../services/getinfo'; // ✅ corrected path
+import * as Location from 'expo-location';
 
 export default function ChatScreen({ route }) {
   const username = route?.params?.username;
 
   const [messages, setMessages] = useState([
-    { id: '1', sender: 'bot', text: 'Hi! I am you chatbot assistance. How may I assist you today?' }
+    { id: '1', sender: 'bot', text: 'Hi! I am your chatbot assistant. How may I assist you today?' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
   const [infoLoading, setInfoLoading] = useState(true);
+  const [loadTimeout, setLoadTimeout] = useState(false);
+  const [placeName, setPlaceName] = useState('');
 
   useEffect(() => {
+    let timeoutId = setTimeout(() => {
+      setLoadTimeout(true);
+      setInfoLoading(false);
+    }, 5000);
+
     async function fetchUserInfo() {
       const data = await getUserInfo(username);
-      setUserInfo(data);
-      setInfoLoading(false);
+      if (data) {
+        setUserInfo(data);
+        clearTimeout(timeoutId);
+        setInfoLoading(false);
+      }
     }
 
     fetchUserInfo();
+
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') return;
+      let loc = await Location.getCurrentPositionAsync({});
+      let places = await Location.reverseGeocodeAsync(loc.coords);
+      if (places && places.length > 0) {
+        const place = places[0];
+        setPlaceName(
+          [place.name, place.street, place.subregion, place.city, place.region, place.country]
+            .filter(Boolean)
+            .join(', ')
+        );
+      }
+    })();
+
+    return () => clearTimeout(timeoutId);
   }, [username]);
 
   async function sendMessage() {
-    if (!input.trim() || !userInfo) return;
+    if (!input.trim()) return;
 
-    const userMessage = { id: Date.now().toString(), sender: 'user', text: input };
+    let USER_INFO;
+    let locationText = placeName
+      ? `My current location is: ${placeName}.`
+      : '';
+
+    if (userInfo) {
+      USER_INFO = `
+My name is ${userInfo.firstName.trim()} ${userInfo.lastName.trim()}.
+I am from ${userInfo.barangay}, ${userInfo.city}, ${userInfo.province}.
+I was born on ${userInfo.dob} and I identify as ${userInfo.gender}.
+My civil status is ${userInfo.status}.
+My location is ${locationText}.
+You should remember this information and use it to personalize your responses.
+`;
+    } else if (loadTimeout) {
+      USER_INFO = `
+This is not a signed-in account. If the user asks for personal information, politely tell them to sign in first(except for location).
+My location is ${locationText}
+`;
+    } else {
+      // Still loading, do not send
+      return;
+    }
+
+    // Add the user's message to the chat first
+    const userMessage = {
+      id: Date.now().toString(),
+      sender: 'user',
+      text: input,
+    };
     setMessages(prev => [...prev, userMessage]);
     setLoading(true);
-
-    const USER_INFO = `
-      My name is ${userInfo.firstName.trim()} ${userInfo.lastName.trim()}.
-      I am from ${userInfo.barangay}, ${userInfo.city}, ${userInfo.province}.
-      I was born on ${userInfo.dob} and I identify as ${userInfo.gender}.
-      My civil status is ${userInfo.status}.
-      You should remember this information and use it to personalize your responses.
-    `;
 
     const prompt = USER_INFO + '\nUser: ' + input;
     const botText = await getGeminiResponse(prompt);
