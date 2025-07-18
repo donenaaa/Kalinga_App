@@ -49,9 +49,12 @@ export default function HomeScreen({ route }) {
       let places = await Location.reverseGeocodeAsync(loc.coords);
       if (places && places.length > 0) {
         const place = places[0];
+        // console.log(place);
         // You can customize this to show barangay, city, province, etc.
         setPlaceName(
-          [place.name, place.street, place.subregion, place.city, place.region, place.country]
+          // [place.name, place.street, place.district, place.city,place.subregion, place.country]
+          [place.street, place.district, place.city,place.subregion, place.country]
+
             .filter(Boolean)
             .join(", ")
         );
