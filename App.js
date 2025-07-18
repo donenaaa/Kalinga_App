@@ -3,6 +3,8 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import SplashScreen from "./screens/SplashScreen";
 import TabNavigator from "./navigation/TabNavigator";
+import LoginScreen from "./screens/LoginScreen";
+import SignUp from "./screens/SignUp";
 
 const Stack = createStackNavigator();
 
@@ -10,8 +12,12 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {/* <Stack.Screen name="Splash" component={SplashScreen} /> */}
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="MainTabs" component={TabNavigator} />
+        <Stack.Screen name="LoginScreen" component={LoginScreen} />
+        <Stack.Screen name="SignUp" component={SignUp} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );

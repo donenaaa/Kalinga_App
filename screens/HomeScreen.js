@@ -14,10 +14,13 @@ import {
 import Icon from "react-native-vector-icons/Ionicons";
 import { db } from "../firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
+import * as Location from "expo-location";
 
 export default function HomeScreen({ route }) {
   const username = route?.params?.username;
   const [userInfo, setUserInfo] = useState(null);
+  const [currentLocation, setCurrentLocation] = useState(null);
+  const [placeName, setPlaceName] = useState(""); // <-- Add this state
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -34,6 +37,28 @@ export default function HomeScreen({ route }) {
     fetchUserInfo();
   }, [username]);
 
+  // Fetch device location and place name
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") return;
+      let loc = await Location.getCurrentPositionAsync({});
+      setCurrentLocation(loc.coords);
+
+      // Reverse geocode to get place name
+      let places = await Location.reverseGeocodeAsync(loc.coords);
+      if (places && places.length > 0) {
+        const place = places[0];
+        // You can customize this to show barangay, city, province, etc.
+        setPlaceName(
+          [place.name, place.street, place.subregion, place.city, place.region, place.country]
+            .filter(Boolean)
+            .join(", ")
+        );
+      }
+    })();
+  }, []);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar
@@ -46,9 +71,9 @@ export default function HomeScreen({ route }) {
           <View style={styles.locationRow}>
             <Icon name="location-outline" size={16} color="#fff" />
             <Text style={styles.locationText}>
-              {userInfo
-                ? `${userInfo.barangay}, ${userInfo.city}, ${userInfo.province}`
-                : "Loading..."}
+               {placeName
+                ? placeName
+                : "Getting your location..."}
             </Text>
           </View>
           <TouchableOpacity>
@@ -63,7 +88,7 @@ export default function HomeScreen({ route }) {
             <View>
               <Text style={styles.welcomeText}>Welcome back,</Text>
               <Text style={styles.userName}>
-                {userInfo ? userInfo.firstName : ""}
+                {userInfo && userInfo.firstName ? userInfo.firstName : "Citizen"}
               </Text>
             </View>
           </View>
