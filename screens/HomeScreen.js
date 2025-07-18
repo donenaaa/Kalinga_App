@@ -105,7 +105,7 @@ export default function HomeScreen({ route }) {
 
           {/* Nearby Resources */}
           <Text style={styles.sectionTitle}>Nearby Resources</Text>
-          <View style={styles.cardRow}>
+          <View style={styles.cardRow2}>
             <View style={styles.blankCard} />
             <View style={styles.blankCard} />
           </View>
@@ -189,24 +189,27 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    gap: 5, // optional: to avoid crowding between cards
+    gap: 10, // optional: to avoid crowding between cards
   },
+
   card: {
-    width: 115,
-    height: 150,
+    width: 160,
+    height: 160,
     backgroundColor: "#fff",
     borderRadius: 12,
     padding: 8,
     alignItems: "center",
     elevation: 3,
   },
+
   cardImage: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    marginTop: 12,
+    marginTop: 20,
     marginBottom: 7,
   },
+
   cardText: {
     fontSize: 13,
     textAlign: "center",
@@ -215,10 +218,17 @@ const styles = StyleSheet.create({
   placeholder: { backgroundColor: "#e1e1e1" },
 
   blankCard: {
-    width: 177,
-    height: 190,
+    width: 320,
+    height: 200,
     backgroundColor: "#fff",
     borderRadius: 12,
     elevation: 4,
+  },
+
+  cardRow2: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: 15, // optional: to avoid crowding between cards
   },
 });
