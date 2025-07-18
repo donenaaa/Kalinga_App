@@ -51,7 +51,14 @@ export default function HomeScreen({ route }) {
         const place = places[0];
         // You can customize this to show barangay, city, province, etc.
         setPlaceName(
-          [place.name, place.street, place.subregion, place.city, place.region, place.country]
+          [
+            place.name,
+            place.street,
+            place.subregion,
+            place.city,
+            place.region,
+            place.country,
+          ]
             .filter(Boolean)
             .join(", ")
         );
@@ -71,9 +78,7 @@ export default function HomeScreen({ route }) {
           <View style={styles.locationRow}>
             <Icon name="location-outline" size={16} color="#fff" />
             <Text style={styles.locationText}>
-               {placeName
-                ? placeName
-                : "Getting your location..."}
+              {placeName ? placeName : "Getting your location..."}
             </Text>
           </View>
           <TouchableOpacity>
@@ -88,7 +93,9 @@ export default function HomeScreen({ route }) {
             <View>
               <Text style={styles.welcomeText}>Welcome back,</Text>
               <Text style={styles.userName}>
-                {userInfo && userInfo.firstName ? userInfo.firstName : "Citizen"}
+                {userInfo && userInfo.firstName
+                  ? userInfo.firstName
+                  : "Citizen"}
               </Text>
             </View>
           </View>
