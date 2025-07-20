@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,24 +10,30 @@ import {
   TouchableOpacity,
   Platform,
   ActivityIndicator,
-} from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
-import { getGeminiResponse } from '../services/geminiChatService';
-import { getUserInfo } from '../services/getinfo'; // ✅ corrected path
-import * as Location from 'expo-location';
+} from "react-native";
+import Icon from "react-native-vector-icons/Ionicons";
+import { getGeminiResponse } from "../services/geminiChatService";
+import { getUserInfo } from "../services/getinfo"; // ✅ corrected path
+import * as Location from "expo-location";
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+
 
 export default function ChatScreen({ route }) {
   const username = route?.params?.username;
 
   const [messages, setMessages] = useState([
-    { id: '1', sender: 'bot', text: 'Hi! I am your chatbot assistant. How may I assist you today?' }
+    {
+      id: "1",
+      sender: "bot",
+      text: "Hi! I am your chatbot assistant. How may I assist you today?",
+    },
   ]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
   const [infoLoading, setInfoLoading] = useState(true);
   const [loadTimeout, setLoadTimeout] = useState(false);
-  const [placeName, setPlaceName] = useState('');
+  const [placeName, setPlaceName] = useState("");
 
   useEffect(() => {
     let timeoutId = setTimeout(() => {
@@ -48,15 +54,22 @@ export default function ChatScreen({ route }) {
 
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') return;
+      if (status !== "granted") return;
       let loc = await Location.getCurrentPositionAsync({});
       let places = await Location.reverseGeocodeAsync(loc.coords);
       if (places && places.length > 0) {
         const place = places[0];
         setPlaceName(
-          [place.name, place.street, place.subregion, place.city, place.region, place.country]
+          [
+            place.name,
+            place.street,
+            place.subregion,
+            place.city,
+            place.region,
+            place.country,
+          ]
             .filter(Boolean)
-            .join(', ')
+            .join(", ")
         );
       }
     })();
@@ -68,9 +81,7 @@ export default function ChatScreen({ route }) {
     if (!input.trim()) return;
 
     let USER_INFO;
-    let locationText = placeName
-      ? `My current location is: ${placeName}.`
-      : '';
+    let locationText = placeName ? `My current location is: ${placeName}.` : "";
 
     if (userInfo) {
       USER_INFO = `
@@ -94,27 +105,32 @@ My location is ${locationText}
     // Add the user's message to the chat first
     const userMessage = {
       id: Date.now().toString(),
-      sender: 'user',
+      sender: "user",
       text: input,
     };
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setLoading(true);
 
-    const prompt = USER_INFO + '\nUser: ' + input;
+    const prompt = USER_INFO + "\nUser: " + input;
     const botText = await getGeminiResponse(prompt);
 
-    setMessages(prev => [
+    setMessages((prev) => [
       ...prev,
-      { id: Date.now().toString() + '_bot', sender: 'bot', text: botText }
+      { id: Date.now().toString() + "_bot", sender: "bot", text: botText },
     ]);
-    setInput('');
+    setInput("");
     setLoading(false);
   }
 
   if (infoLoading) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <View
+          style={[
+            styles.container,
+            { justifyContent: "center", alignItems: "center" },
+          ]}
+        >
           <ActivityIndicator size="large" color="#e75e33" />
           <Text>Loading user info...</Text>
         </View>
@@ -133,19 +149,19 @@ My location is ${locationText}
             <Text style={styles.headerTitle}>Gemini Chat</Text>
           </View>
           <TouchableOpacity>
-            <Icon name="person-circle-outline" size={26} color="#fff" />
+            <Icon name="person-circle-outline" size={30} color="#fff" />
           </TouchableOpacity>
         </View>
 
         {/* Chat Area */}
         <FlatList
           data={messages}
-          keyExtractor={item => item.id}
+          keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <View
               style={[
                 styles.message,
-                item.sender === 'user' ? styles.user : styles.bot
+                item.sender === "user" ? styles.user : styles.bot,
               ]}
             >
               <Text style={styles.messageText}>{item.text}</Text>
@@ -169,7 +185,7 @@ My location is ${locationText}
             onPress={sendMessage}
             disabled={loading}
           >
-            <Icon name="send" size={22} color="#fff" />
+            <Icon name="send" size={20} color="#fff" />
           </TouchableOpacity>
         </View>
       </View>
@@ -180,74 +196,78 @@ My location is ${locationText}
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   header: {
-    backgroundColor: '#e75e33',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    paddingTop: Platform.OS === 'android' ? 32 : 16,
+    backgroundColor: "#e75e33",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: wp('4%'),
+    // paddingTop: Platform.OS === 'android' ? 32 : 16,
   },
   headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   headerTitle: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 18,
-    marginLeft: 8,
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: wp('4.5%'),
+    marginLeft: wp('2%'),
   },
   chatContainer: {
     flexGrow: 1,
-    padding: 16,
-    justifyContent: 'flex-end',
+    padding: wp('3.5%'),
+    justifyContent: "flex-end",
   },
   message: {
-    marginVertical: 4,
-    padding: 12,
-    borderRadius: 10,
-    maxWidth: '80%',
+    marginVertical: hp('0.8%'),
+    padding: wp('3%'),
+    borderRadius: wp('3%'),
+    maxWidth: "80%",
   },
   user: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#DCF8C6',
+    alignSelf: "flex-end",
+    backgroundColor: "#DCF8C6",
   },
   bot: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#EEE',
+    alignSelf: "flex-start",
+    backgroundColor: "#EEE",
   },
   messageText: {
-    fontSize: 15,
-    color: '#222',
+    fontSize: wp('4%'),
+    color: "#222",
   },
   inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f1f1f1',
-    borderRadius: 8,
-    margin: 16,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f1f1f1",
+    borderRadius: wp('3%'),
+    marginHorizontal: wp('4%'),
+    marginBottom: hp('4.5%'),
+    paddingHorizontal: wp('3%'),
+    paddingVertical: hp('0.5%'),
+    elevation: 2,
   },
   input: {
     flex: 1,
-    height: 40,
-    paddingHorizontal: 8,
-    color: '#000',
+    height: hp('5.5%'),
+    paddingHorizontal: wp('2%'),
+    color: "#000",
+    fontSize: wp('3.8%'),
   },
   sendButton: {
-    backgroundColor: '#e75e33',
-    borderRadius: 8,
-    padding: 8,
-    marginLeft: 6,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#225B64",
+    borderRadius: wp('3%'),
+    padding: wp('2%'),
+    marginLeft: wp('2%'),
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
+

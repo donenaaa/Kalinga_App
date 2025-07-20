@@ -15,6 +15,10 @@ import Icon from "react-native-vector-icons/Ionicons";
 import { db } from "../firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import * as Location from "expo-location";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 export default function HomeScreen({ route }) {
   const username = route?.params?.username;
@@ -52,8 +56,15 @@ export default function HomeScreen({ route }) {
         // console.log(place);
         // You can customize this to show barangay, city, province, etc.
         setPlaceName(
+          // [place.name, place.street, place.subregion, place.city, place.region, place.country]
           // [place.name, place.street, place.district, place.city,place.subregion, place.country]
-          [place.street, place.district, place.city,place.subregion, place.country]
+          [
+            place.street,
+            place.district,
+            place.city,
+            place.subregion,
+            place.country,
+          ]
 
             .filter(Boolean)
             .join(", ")
@@ -74,9 +85,7 @@ export default function HomeScreen({ route }) {
           <View style={styles.locationRow}>
             <Icon name="location-outline" size={16} color="#fff" />
             <Text style={styles.locationText}>
-               {placeName
-                ? placeName
-                : "Getting your location..."}
+              {placeName ? placeName : "Getting your location..."}
             </Text>
           </View>
           <TouchableOpacity>
@@ -91,7 +100,9 @@ export default function HomeScreen({ route }) {
             <View>
               <Text style={styles.welcomeText}>Welcome back,</Text>
               <Text style={styles.userName}>
-                {userInfo && userInfo.firstName ? userInfo.firstName : "Citizen"}
+                {userInfo && userInfo.firstName
+                  ? userInfo.firstName
+                  : "Citizen"}
               </Text>
             </View>
           </View>
@@ -111,31 +122,48 @@ export default function HomeScreen({ route }) {
           {/* Services */}
           <Text style={styles.sectionTitle}>Services</Text>
           <View style={styles.cardRow}>
-            <View style={styles.card}>
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => console.log("Food Distribution")}
+            >
               <Image
                 source={require("../assets/Kalinga_logo.png")}
                 style={styles.cardImage}
               />
               <Text style={styles.cardText}>Food Distribution Schedules</Text>
-            </View>
-            <View style={styles.card}>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => console.log("Medical Support")}
+            >
               <Image
                 source={require("../assets/Kalinga_logo.png")}
                 style={styles.cardImage}
               />
               <Text style={styles.cardText}>Medical Support Location</Text>
-            </View>
-            <View style={styles.card}>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => console.log("Evacuation Centers")}
+            >
               <View style={[styles.cardImage, styles.placeholder]} />
               <Text style={styles.cardText}>Evacuation Centers</Text>
-            </View>
+            </TouchableOpacity>
           </View>
 
           {/* Nearby Resources */}
           <Text style={styles.sectionTitle}>Nearby Resources</Text>
           <View style={styles.cardRow2}>
-            <View style={styles.blankCard} />
-            <View style={styles.blankCard} />
+            <TouchableOpacity
+              style={styles.nearbyCard}
+              onPress={() => console.log("Nearby Resource 1")}
+            />
+            <TouchableOpacity
+              style={styles.nearbyCard}
+              onPress={() => console.log("Nearby Resource 2")}
+            />
           </View>
         </ScrollView>
       </View>
@@ -147,6 +175,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+    height: hp("100%"),
+    width: wp("100%"),
   },
 
   safeArea: {
@@ -158,15 +188,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 16,
+    padding: wp("4%"),
+    // padding: 16,
   },
   locationRow: { flexDirection: "row", alignItems: "center" },
   locationText: { color: "#fff", marginLeft: 4, fontWeight: "bold" },
 
   scrollContainer: {
     flexGrow: 1,
-    padding: 12,
-    paddingBottom: 30,
+    padding: wp("4%"),
+    paddingBottom: hp("4%"),
   },
 
   welcomeContainer: {
@@ -207,10 +238,10 @@ const styles = StyleSheet.create({
   },
 
   sectionTitle: {
-    fontSize: 18,
+    fontSize: wp("5%"),
     fontWeight: "bold",
-    marginBottom: 16,
-    paddingTop: 20,
+    marginBottom: hp("2%"),
+    paddingTop: hp("3%"),
   },
 
   cardRow: {
@@ -221,11 +252,11 @@ const styles = StyleSheet.create({
   },
 
   card: {
-    width: 160,
-    height: 160,
+    width: wp("44%"),
+    height: wp("44%"),
     backgroundColor: "#fff",
     borderRadius: 12,
-    padding: 8,
+    padding: wp("5%"),
     alignItems: "center",
     elevation: 3,
   },
@@ -234,7 +265,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    marginTop: 20,
+    marginTop: 15,
     marginBottom: 7,
   },
 
@@ -245,18 +276,18 @@ const styles = StyleSheet.create({
 
   placeholder: { backgroundColor: "#e1e1e1" },
 
-  blankCard: {
-    width: 320,
-    height: 200,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    elevation: 4,
-  },
-
   cardRow2: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
     gap: 15, // optional: to avoid crowding between cards
   },
+  nearbyCard: {
+    width: wp("90%"),
+    height: hp("25%"),
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    elevation: 4,
+  },
+
 });

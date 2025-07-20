@@ -3,6 +3,8 @@ import React, { useEffect } from "react";
 import { View, Text, Image, StyleSheet } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFonts } from "expo-font";
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
+
 
 export default function SplashScreen({ navigation }) {
   const [fontsLoaded] = useFonts({
@@ -45,30 +47,30 @@ export default function SplashScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
+   container: {
     flex: 1,
     backgroundColor: "#ffff",
     justifyContent: "center",
     alignItems: "center",
   },
   logo: {
-    width: 130,
-    height: 130,
-    marginBottom: 15,
+    width: wp("35%"),
+    height: wp("35%"),
+    marginBottom: hp("2%"),
   },
   text: {
-    fontSize: 32,
+    fontSize: wp("8%"),
     fontWeight: "800",
-    letterSpacing: 4,
+    letterSpacing: wp("1%"),
     color: "#EC6135",
-    marginBottom: 10,
+    marginBottom: hp("1.5%"),
   },
   subtitle: {
-    fontSize: 20,
+    fontSize: wp("5%"),
     fontFamily: "Caveat",
     textAlign: "center",
-    marginTop: 3,
+    marginTop: hp("0.5%"),
     color: "#225B64",
-    lineHeight: 30,
+    lineHeight: hp("4%"),
   },
 });

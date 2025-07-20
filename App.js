@@ -5,6 +5,7 @@ import SplashScreen from "./screens/SplashScreen";
 import TabNavigator from "./navigation/TabNavigator";
 import LoginScreen from "./screens/LoginScreen";
 import SignUp from "./screens/SignUp";
+import AnalyticsScreen from "./screens/AnalyticsScreen";
 
 const Stack = createStackNavigator();
 
@@ -17,6 +18,7 @@ export default function App() {
         <Stack.Screen name="MainTabs" component={TabNavigator} />
         <Stack.Screen name="LoginScreen" component={LoginScreen} />
         <Stack.Screen name="SignUp" component={SignUp} />
+        <Stack.Screen name="AnalyticsScreen" component={AnalyticsScreen} />
 
       </Stack.Navigator>
     </NavigationContainer>

@@ -74,18 +74,17 @@ export default function ProfileScreen() {
                 <Text style={styles.signInText}>Sign in</Text>
               </TouchableOpacity>
             )}
-
           </View>
 
           {/* Settings Options */}
           <View style={styles.settingsList}>
             <TouchableOpacity style={styles.settingItem}>
               <Icon name="person-outline" size={22} color="#555" />
-              <Text style={styles.settingText}>Edit Profile</Text>
+              <Text style={styles.settingText}>Account Information</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.settingItem}>
               <Icon name="lock-closed-outline" size={22} color="#555" />
-              <Text style={styles.settingText}>Change Password</Text>
+              <Text style={styles.settingText}>Privacy</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.settingItem}>
               <Icon name="notifications-outline" size={22} color="#555" />
@@ -99,24 +98,29 @@ export default function ProfileScreen() {
               <Icon name="construct-outline" size={22} color="#555" />
               <Text style={styles.settingText}>Report</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.settingItem}>
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={() => navigation.navigate("AnalyticsScreen")}
+            >
               <Icon name="analytics-outline" size={22} color="#555" />
               <Text style={styles.settingText}>Analytics</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.settingItem}>
               <Icon name="information-circle-outline" size={22} color="#555" />
-              <Text style={styles.settingText}>About</Text>
+              <Text style={styles.settingText}>About us</Text>
             </TouchableOpacity>
           </View>
 
           {/* Log Out */}
           {userInfo && (
-  <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-    <Icon name="log-out-outline" size={20} color="#e75e33" />
-    <Text style={styles.logoutText}>Log Out</Text>
-  </TouchableOpacity>
-)}
-
+            <TouchableOpacity
+              style={styles.logoutButton}
+              onPress={handleLogout}
+            >
+              <Icon name="log-out-outline" size={20} color="#e75e33" />
+              <Text style={styles.logoutText}>Log Out</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -127,10 +131,10 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: "#fff",
-    // paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
   scrollContainer: {
-    paddingBottom: 40,
+    paddingBottom: 25,
   },
   container: {
     padding: 20,
@@ -190,7 +194,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignSelf: "center",
     backgroundColor: "#fff5f0",
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
     paddingVertical: 12,
     borderRadius: 10,
   },
