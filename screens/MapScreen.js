@@ -20,6 +20,10 @@ import {
   addDoc,
   serverTimestamp,
   getDocs,
+  deleteDoc,
+  doc,
+  query,
+  where,
 } from "firebase/firestore";
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { getUserInfo } from "../services/getinfo";
@@ -32,6 +36,7 @@ import {
   getUserVoteStatus,
   getUpdatedPinData
 } from '../services/VotesHandler';
+import { handlePinDeletion } from '../services/PinDeletionUI';
 
 // Debug: Log the imports immediately
 console.log("=== IMPORT DEBUG ===");
@@ -111,7 +116,7 @@ export default function MapScreen({ route }) {
     if (focusPin && mapRef.current && allPins.length > 0) {
       // Focus on the specific pin
       setTimeout(() => {
-        console.log("Focusing on pin:", focusPin);
+        // console.log("Focusing on pin:", focusPin);
         mapRef.current.animateToRegion(
           {
             latitude: focusPin.latitude,
@@ -125,7 +130,7 @@ export default function MapScreen({ route }) {
         // Find and show the pin info modal for the focused pin
         const targetPin = allPins.find(pin => pin.id === focusPin.id);
         if (targetPin) {
-          console.log("Found target pin, opening modal:", targetPin);
+          // console.log("Found target pin, opening modal:", targetPin);
           setTimeout(() => {
             handlePinMarkerPress(targetPin);
           }, 1500); // Delay to let the map animation complete
@@ -175,7 +180,7 @@ export default function MapScreen({ route }) {
 
   // HANDLE PIN MARKER PRESS
   const handlePinMarkerPress = async (pin) => {
-    console.log('Pin marker pressed:', pin.id);
+    // console.log('Pin marker pressed:', pin.id);
     setSelectedPin(pin);
     setPinInfoModalVisible(true);
 
@@ -261,7 +266,18 @@ export default function MapScreen({ route }) {
           console.log('Updated pin data:', updatedPin);
 
           if (updatedPin) {
-            // Update selected pin
+            // Check if pin should be deleted and handle it
+          if (shouldDeletePin(updatedPin.upvotes, updatedPin.downvotes)) {
+  console.log('Pin qualifies for deletion, deleting pin...');
+  await deletePinCompletely(selectedPin.id);
+  await showPinDeletionAlert(); // Alert will show, modal closes after user presses OK
+
+  // Now update allPins to remove the deleted pin
+  setAllPins(prevPins => prevPins.filter(pin => pin.id !== selectedPin.id));
+  return;
+}
+
+            // Update selected pin if not deleted
             setSelectedPin(updatedPin);
 
             // Update the pin in allPins array
@@ -282,7 +298,7 @@ export default function MapScreen({ route }) {
           setUserVoteStatus(newVoteStatus);
         }
 
-        // Show feedback message
+        // Show feedback message for regular votes
         let message = "";
         switch (result.action) {
           case "added":
@@ -296,7 +312,11 @@ export default function MapScreen({ route }) {
             break;
         }
 
-        console.log('Vote success message:', message);
+        if (message) {
+          // Show the message as an alert or toast
+          Alert.alert("Vote Recorded", message);
+          console.log('Vote success message:', message);
+        }
 
       } else {
         console.error('Vote failed:', result.error);
@@ -307,6 +327,125 @@ export default function MapScreen({ route }) {
       Alert.alert("Error", "Failed to record vote. Please try again.");
     } finally {
       setIsVoting(false);
+    }
+  };
+
+  const shouldDeletePin = (upvotes, downvotes) => {
+    const totalVotes = upvotes + downvotes;
+
+    // Require minimum votes to prevent deletion on too few votes
+    if (totalVotes < 10) return false;
+
+    const downvoteRatio = (downvotes / totalVotes) * 100;
+    return downvoteRatio >= 90;
+
+
+  };
+
+  // Delete pin and all its associated votes
+  const deletePinCompletely = async (pinId) => {
+    try {
+      console.log(`Auto-deleting pin ${pinId} due to high downvote ratio`);
+
+      // Delete the pin document
+      const pinRef = doc(db, "pins", pinId);
+      await deleteDoc(pinRef);
+
+      // Delete all votes associated with this pin
+      const votesQuery = query(
+        collection(db, "votes"),
+        where("pinId", "==", pinId)
+      );
+      const votesSnapshot = await getDocs(votesQuery);
+
+      const batch = [];
+      votesSnapshot.forEach((voteDoc) => {
+        batch.push(deleteDoc(voteDoc.ref));
+      });
+
+      // Execute all vote deletions
+      await Promise.all(batch);
+
+      console.log(`Successfully deleted pin ${pinId} and ${votesSnapshot.size} associated votes`);
+      return true;
+    } catch (error) {
+      console.error("Error deleting pin:", error);
+      return false;
+    }
+  };
+
+
+
+  const cleanupPinsWithHighDownvotes = async () => {
+    try {
+      console.log("Starting cleanup of pins with high downvote ratios...");
+
+      const pinsSnapshot = await getDocs(collection(db, "pins"));
+      let deletedCount = 0;
+
+      for (const pinDoc of pinsSnapshot.docs) {
+        const pinData = pinDoc.data();
+        const upvotes = pinData.upvotes || 0;
+        const downvotes = pinData.downvotes || 0;
+
+        if (shouldDeletePin(upvotes, downvotes)) {
+          const deleted = await deletePinCompletely(pinDoc.id);
+          if (deleted) {
+            deletedCount++;
+          }
+        }
+      }
+
+      console.log(`Cleanup complete. Deleted ${deletedCount} pins.`);
+      return { success: true, deletedCount };
+    } catch (error) {
+      console.error("Error during cleanup:", error);
+      return { success: false, error: error.message };
+    }
+  };
+
+  const showPinDeletionAlert = () => {
+    return new Promise((resolve) => {
+      Alert.alert(
+        "⚠️ Pin Removed",
+        "This pin has been removed due to community feedback.",
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              console.log("Pin deletion alert dismissed");
+              closePinInfoModal(); // <-- Move here!
+              resolve();
+            }
+          }
+        ],
+        { cancelable: false }
+      );
+    });
+  };
+
+  // Alternative: Show a toast message instead of alert
+  const showPinDeletionToast = () => {
+    // If you're using a toast library like react-native-toast-message
+    // Toast.show({
+    //   type: 'info',
+    //   text1: 'Pin Removed',
+    //   text2: 'This pin has been removed due to community feedback.',
+    //   visibilityTime: 3000,
+    // });
+
+    console.log("Pin deleted - showing toast notification");
+  };
+
+  // Refresh function for React Native
+  const refreshPinData = async (refreshCallback) => {
+    try {
+      console.log("Refreshing pin data...");
+      if (refreshCallback && typeof refreshCallback === 'function') {
+        await refreshCallback();
+      }
+    } catch (error) {
+      console.error("Error refreshing pin data:", error);
     }
   };
 
@@ -394,6 +533,7 @@ export default function MapScreen({ route }) {
       longitudeDelta: 0.01,
     };
   };
+
 
   return (
     <View style={styles.container}>
@@ -484,12 +624,12 @@ export default function MapScreen({ route }) {
                   <Text style={styles.modalVotes}>
                     👍 {selectedPin.upvotes || 0}   👎 {selectedPin.downvotes || 0}
                   </Text>
-                   <Text style={styles.modalTime}>
-                  {getHoursAgo(selectedPin.createdAt)}
-                </Text>
+                  <Text style={styles.modalTime}>
+                    {getHoursAgo(selectedPin.createdAt)}
+                  </Text>
                 </View>
-               
-                
+
+
                 {/* Voting Buttons */}
                 <View style={styles.votingButtons}>
                   <TouchableOpacity
@@ -558,18 +698,19 @@ function getHoursAgo(createdAt) {
   const now = Date.now();
   const diffMs = now - pinTime;
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  
+
   if (diffHours === 0) {
     return 'Just now';
   }
-  
+
   if (diffHours >= 24) {
     const diffDays = Math.floor(diffHours / 24);
     return `${diffDays} Day${diffDays !== 1 ? 's' : ''} ago`;
   }
-  
+
   return `${diffHours} Hour${diffHours !== 1 ? 's' : ''} ago`;
 }
+
 
 const styles = StyleSheet.create({
   container: {

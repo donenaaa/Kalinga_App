@@ -53,6 +53,49 @@ export const getPinVotes = async (pinId) => {
   }
 };
 
+// Auto-delete logic - check if pin should be deleted based on downvote ratio
+const shouldDeletePin = (upvotes, downvotes) => {
+  const totalVotes = upvotes + downvotes;
+  
+  // Require minimum votes to prevent deletion on too few votes
+  if (totalVotes < 10) return false;
+  
+  const downvoteRatio = (downvotes / totalVotes) * 100;
+  return downvoteRatio >= 90;
+};
+
+// Delete pin and all its associated votes
+const deletePinCompletely = async (pinId) => {
+  try {
+    console.log(`Auto-deleting pin ${pinId} due to high downvote ratio`);
+    
+    // Delete the pin document
+    const pinRef = doc(db, "pins", pinId);
+    await deleteDoc(pinRef);
+    
+    // Delete all votes associated with this pin
+    const votesQuery = query(
+      collection(db, "votes"),
+      where("pinId", "==", pinId)
+    );
+    const votesSnapshot = await getDocs(votesQuery);
+    
+    const batch = [];
+    votesSnapshot.forEach((voteDoc) => {
+      batch.push(deleteDoc(voteDoc.ref));
+    });
+    
+    // Execute all vote deletions
+    await Promise.all(batch);
+    
+    console.log(`Successfully deleted pin ${pinId} and ${votesSnapshot.size} associated votes`);
+    return true;
+  } catch (error) {
+    console.error("Error deleting pin:", error);
+    return false;
+  }
+};
+
 // Cast a vote (upvote or downvote)
 export const castVote = async (pinId, userId, voteType) => {
   console.log("castVote function called with:", { pinId, userId, voteType });
@@ -65,6 +108,8 @@ export const castVote = async (pinId, userId, voteType) => {
     // Check if user has already voted
     const existingVote = await hasUserVoted(pinId, userId);
     console.log("Existing vote:", existingVote);
+
+    let result;
 
     if (existingVote) {
       // User has already voted
@@ -79,7 +124,7 @@ export const castVote = async (pinId, userId, voteType) => {
           [decrementField]: increment(-1)
         });
         
-        return { success: true, action: "removed", voteType };
+        result = { success: true, action: "removed", voteType };
       } else {
         // Different vote type - change vote
         console.log("Changing vote type");
@@ -99,7 +144,7 @@ export const castVote = async (pinId, userId, voteType) => {
           [newVoteField]: increment(1)
         });
         
-        return { success: true, action: "changed", voteType, previousVote: existingVote.voteType };
+        result = { success: true, action: "changed", voteType, previousVote: existingVote.voteType };
       }
     } else {
       // New vote
@@ -117,8 +162,28 @@ export const castVote = async (pinId, userId, voteType) => {
         [incrementField]: increment(1)
       });
       
-      return { success: true, action: "added", voteType };
+      result = { success: true, action: "added", voteType };
     }
+
+    // After any vote change, check if pin should be auto-deleted
+    const updatedPin = await getDoc(pinRef);
+    if (updatedPin.exists()) {
+      const pinData = updatedPin.data();
+      const upvotes = pinData.upvotes || 0;
+      const downvotes = pinData.downvotes || 0;
+      
+      console.log(`Pin ${pinId} vote counts - Upvotes: ${upvotes}, Downvotes: ${downvotes}`);
+      
+      if (shouldDeletePin(upvotes, downvotes)) {
+        const deleted = await deletePinCompletely(pinId);
+        if (deleted) {
+          result.pinDeleted = true;
+          result.deleteReason = "High downvote ratio (≥90%)";
+        }
+      }
+    }
+    
+    return result;
   } catch (error) {
     console.error("Error casting vote:", error);
     return { success: false, error: error.message };
@@ -160,5 +225,65 @@ export const getUpdatedPinData = async (pinId) => {
   } catch (error) {
     console.error("Error getting updated pin data:", error);
     return null;
+  }
+};
+
+// Manual cleanup function - can be called periodically or on-demand
+export const cleanupPinsWithHighDownvotes = async () => {
+  try {
+    console.log("Starting cleanup of pins with high downvote ratios...");
+    
+    const pinsSnapshot = await getDocs(collection(db, "pins"));
+    let deletedCount = 0;
+    
+    for (const pinDoc of pinsSnapshot.docs) {
+      const pinData = pinDoc.data();
+      const upvotes = pinData.upvotes || 0;
+      const downvotes = pinData.downvotes || 0;
+      
+      if (shouldDeletePin(upvotes, downvotes)) {
+        const deleted = await deletePinCompletely(pinDoc.id);
+        if (deleted) {
+          deletedCount++;
+        }
+      }
+    }
+    
+    console.log(`Cleanup complete. Deleted ${deletedCount} pins.`);
+    return { success: true, deletedCount };
+  } catch (error) {
+    console.error("Error during cleanup:", error);
+    return { success: false, error: error.message };
+  }
+
+  
+};
+
+const refreshPinsData = async () => {
+  try {
+    console.log("Refreshing pins from database...");
+    const querySnapshot = await getDocs(collection(db, "pins"));
+    const pins = [];
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      if (data.latitude && data.longitude) {
+        pins.push({
+          id: doc.id,
+          latitude: data.latitude,
+          longitude: data.longitude,
+          userId: data.userId,
+          userFirstName: data.userFirstName || "anonymous",
+          description: data.description,
+          category: data.category || "Unknown",
+          createdAt: data.createdAt,
+          upvotes: data.upvotes || 0,
+          downvotes: data.downvotes || 0,
+        });
+      }
+    });
+    setAllPins(pins);
+    console.log(`Refreshed ${pins.length} pins`);
+  } catch (error) {
+    console.error("Error refreshing pins:", error);
   }
 };
