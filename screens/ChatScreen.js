@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f1f1f1",
     borderRadius: wp('3%'),
     marginHorizontal: wp('4%'),
-    marginBottom: hp('4.5%'),
+    marginBottom: hp('4%'),
     paddingHorizontal: wp('3%'),
     paddingVertical: hp('0.5%'),
     elevation: 2,
